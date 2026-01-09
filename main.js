@@ -6,6 +6,7 @@ const GAS_URL = process.env.GAS_URL;
 const CACHE_TTL = process.env.CACHE_TTL * 1000 || 300 * 1000;
 
 const tokenCache = new Map();
+const pendingRequests = new Map();
 
 const server = http.createServer(async (req, res) => {
     const authHeader = req.headers.authorization;
@@ -30,30 +31,40 @@ const server = http.createServer(async (req, res) => {
         }
     }
 
-    console.log(`[GAS Fetch] Verifying Token: ${token.substring(0, 5)}...`);
+    let fetchPromise = pendingRequests.get(token);
 
-    try {
-        const gasResponse = await fetch(GAS_URL, {
+    if (!fetchPromise) {
+        console.log(`[GAS Fetch] Verifying Token: ${token.substring(0, 5)}...`);
+
+        fetchPromise = fetch(GAS_URL, {
             method: 'POST',
             redirect: 'follow',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: token, ip: ip })
+        })
+        .then(async (response) => {
+            const data = await response.json();
+            const isPass = (data.pass === true);
+            tokenCache.set(token, {
+                pass: isPass,
+                timestamp: Date.now()
+            });
+            return isPass;
+        })
+        .finally(() => {
+            pendingRequests.delete(token);
         });
 
-        const data = await gasResponse.json();
-        const isPass = (data.pass === true);
+        pendingRequests.set(token, fetchPromise);
+    }
 
-        tokenCache.set(token, {
-            pass: isPass,
-            timestamp: now
-        });
-
+    try {
+        const isPass = await fetchPromise;
         if (isPass) {
             res.statusCode = 200;
         } else {
             res.statusCode = 401;
         }
-
     } catch (error) {
         console.error("GAS Error:", error);
         res.statusCode = 401;
