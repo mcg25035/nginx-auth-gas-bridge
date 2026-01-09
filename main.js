@@ -8,6 +8,7 @@ const CACHE_TTL = 300 * 1000;
 const tokenCache = new Map();
 
 const server = http.createServer(async (req, res) => {
+    console.log(req.headers)
     const authHeader = req.headers.authorization;
     if (!authHeader) { res.statusCode = 401; return res.end(); }
 
