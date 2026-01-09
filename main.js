@@ -1,9 +1,9 @@
 const http = require('http');
 
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzKkU8-w86Y4RDO3LUiS4dSP8v0d_rZq9XrrQUEQUBzy8Rz-3Z7HqVQ6ti6E-Tdsza1hA/exec";
+const GAS_URL = process.env.GAS_URL;
 
-const CACHE_TTL = 300 * 1000;
+const CACHE_TTL = process.env.CACHE_TTL * 1000 || 300 * 1000;
 
 const tokenCache = new Map();
 
