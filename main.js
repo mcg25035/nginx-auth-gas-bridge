@@ -8,12 +8,12 @@ const CACHE_TTL = 300 * 1000;
 const tokenCache = new Map();
 
 const server = http.createServer(async (req, res) => {
-    console.log(req.headers)
     const authHeader = req.headers.authorization;
     if (!authHeader) { res.statusCode = 401; return res.end(); }
 
     const b64auth = authHeader.split(' ')[1];
     const [user, token] = Buffer.from(b64auth, 'base64').toString().split(':');
+    const ip = req.headers['cf-connecting-ip'];
 
     if (!token) { res.statusCode = 401; return res.end(); }
 
@@ -37,7 +37,7 @@ const server = http.createServer(async (req, res) => {
             method: 'POST',
             redirect: 'follow',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: token })
+            body: JSON.stringify({ token: token, ip: ip })
         });
 
         const data = await gasResponse.json();
