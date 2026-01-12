@@ -12,11 +12,10 @@ const server = http.createServer(async (req, res) => {
     if (!authHeader) { res.statusCode = 401; return res.end(); }
 
     const b64auth = authHeader.split(' ')[1];
-
-    console.log(req.headers)
     
     const [user, token] = Buffer.from(b64auth, 'base64').toString().split(':');
     const ip = req.headers['cf-connecting-ip'] || req.socket.remoteAddress;
+    const refer = req.headers['referer'] || '';
 
     
     const requiredRoles = req.headers['x-required-groups'] || '';
@@ -52,7 +51,8 @@ const server = http.createServer(async (req, res) => {
             body: JSON.stringify({ 
                 token: token, 
                 ip: ip,
-                role: requiredRoles 
+                role: requiredRoles,
+                refer: refer 
             })
         })
         .then(async (response) => {
