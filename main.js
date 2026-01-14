@@ -17,7 +17,10 @@ const server = http.createServer(async (req, res) => {
     
     const [user, token] = Buffer.from(b64auth, 'base64').toString().split(':');
     const ip = req.headers['cf-connecting-ip'] || req.socket.remoteAddress;
-    const refer = req.headers['referer'] || '';
+
+    const targetDomain = req.headers['x-original-host'] || req.headers.host;
+    const targetPath = req.headers['x-original-uri'] || '/'
+    const refer = `https://${targetDomain}${targetPath}`
 
     
     const requiredRoles = req.headers['x-required-groups'] || '';
