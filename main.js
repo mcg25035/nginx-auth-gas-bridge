@@ -8,8 +8,6 @@ const tokenCache = new Map();
 const pendingRequests = new Map();
 
 const server = http.createServer(async (req, res) => {
-    console.log(req.headers)
-
     const authHeader = req.headers.authorization;
     if (!authHeader) { res.statusCode = 401; return res.end(); }
 
@@ -18,6 +16,10 @@ const server = http.createServer(async (req, res) => {
     const [user, token] = Buffer.from(b64auth, 'base64').toString().split(':');
     const ip = req.headers['cf-connecting-ip'] || req.socket.remoteAddress;
     const refer = req.headers['referer'] || '';
+
+    if (!refer) {
+        console.log(`[No Refer] Token: ${token.substring(0, 5)}... Role: [${requiredRoles}]`);
+    }
 
     
     const requiredRoles = req.headers['x-required-groups'] || '';
